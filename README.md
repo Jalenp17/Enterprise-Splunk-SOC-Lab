@@ -25,7 +25,7 @@ hydra -L users.txt -P passwork.txt rdp://[TARGET_WINDOWS_IP] -t 1 -V -f
 ```
 
 *Below is the execution window capturing the high-velocity credential attack vector:*
-![Kali Linux Attack](screenshots/kali_attack.png)
+<img width="732" height="511" alt="Image" src="https://github.com/user-attachments/assets/706d68cb-de2b-46fa-af22-0f3d8d8455ba" />
 
 ---
 
@@ -33,19 +33,16 @@ hydra -L users.txt -P passwork.txt rdp://[TARGET_WINDOWS_IP] -t 1 -V -f
 To ensure the Windows event logs were readable by the Splunk core engine, I customized the endpoint's ingestion configurations. By setting `renderXml = false` in the forwarder's properties, Windows raw data was transmitted as structured key-value text pairs, allowing Splunk to natively extract authentication headers.
 
 *Below is the verification of the raw Event Code 4625 logs landing securely in the SIEM index:*
-![Raw Event Evidence](screenshots/raw_events.png)
+<img width="1137" height="570" alt="Screenshot 2026-08-28 220833" src="https://github.com/user-attachments/assets/31dd97d5-da09-41cb-86bb-1e8ef4a784fa" />
+
 
 ---
 
 ### Phase 3: Analytical Development (Detection Engineering)
 I authored an optimized, interview-proof SPL query designed to aggregate raw authentication telemetry while actively suppressing alert noise. 
 
-```spl
-index="main" EventCode=4625
-| rename Source_Network_Address AS sc_ip, 
-| stats count by Account_Name, sc_ip
-| where count > 10
-```
+<img width="610" height="162" alt="Screenshot 2026-08-28 212648" src="https://github.com/user-attachments/assets/58591228-786f-4f1f-a3fa-4b3599804d19" />
+
 
 #### **Query Breakdown:**
 1. **`index="main" EventCode=4625`**: Pulls Windows Security events tracking explicit logon failures.
@@ -54,7 +51,8 @@ index="main" EventCode=4625
 4. **`| where count > 10`**: Establishes a strict behavioral threshold. It ignores standard employee typos but flags automated automation tools (like Hydra) the moment they exceed 10 rapid attempts.
 
 *Below is the visual confirmation of the optimized SPL search yielding clear metadata fields:*
-![SPL Query In Action](screenshots/spl_query.png)
+<img width="1058" height="513" alt="Screenshot 2026-08-28 220909" src="https://github.com/user-attachments/assets/fe6e7810-d33f-49f9-b214-726c81466a87" />
+
 
 ---
 
@@ -64,16 +62,19 @@ index="main" EventCode=4625
 I saved the optimized SPL query as a persistent visual tracking panel using Splunk's Classic Dashboard studio. This workspace gives internal tier-1 analysts immediate situational visibility over active authentication threats across the domain infrastructure.
 
 *Below is the live Enterprise SOC Analyst Workspace displaying the attack metrics:*
-![Splunk SOC Dashboard](screenshots/splunk_dashboard.png)
+<img width="1363" height="453" alt="Screenshot 2026-08-28 215941" src="https://github.com/user-attachments/assets/668abd75-994c-4bb9-b59e-da55e0a17b7e" />
+
 
 ### 2. Automated Trigger Alert Queue
 To ensure proactive network defense when analysts are away from the dashboard console, I configured the threshold code to run as a **Scheduled Alert Rule** utilizing background cron intervals (`*/5 * * * *`). The moment the Kali machine spiked the count past the threshold of 10, the engine automatically populated the global triage queue.
 
 *Below is the step-by-step alert configuration rule profile:*
-![Alert Setup Process](screenshots/alert_setup.png)
+<img width="823" height="541" alt="Screenshot 2026-08-28 211923" src="https://github.com/user-attachments/assets/b826d89b-2a92-4711-a8fd-a30c22baf76c" />
+
 
 *Below is the resulting high-severity incident generating inside the active SOC queue:*
-![Splunk Triggered Alerts Queue](screenshots/splunk_alerts.png)
+<img width="1350" height="176" alt="Screenshot 2026-08-28 215752" src="https://github.com/user-attachments/assets/29e20b11-1c87-4fc9-8a5c-c23e9fc2fd08" />
+
 
 ---
 
